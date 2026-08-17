@@ -336,7 +336,12 @@ const TitleCard = ({
       currentStatus === MediaStatus.DELETED);
   const showRequestAction =
     canRequestTitle && (!image || showDetail || showRequestModal);
-  const hasBottomRow = showCardRating || canRequestTitle;
+  const showCardRatingBadge =
+    showCardRating &&
+    !showDetail &&
+    !showRequestModal &&
+    !showRequestAction;
+  const hasBottomRow = canRequestTitle || (!image && showCardRating);
 
   const showHideButton = hasPermission([Permission.MANAGE_BLOCKLIST], {
     type: 'or',
@@ -574,9 +579,9 @@ const TitleCard = ({
               </Link>
             </div>
           </Transition>
-          {(showCardRating || showRequestAction) && (
+          {(showCardRatingBadge || showRequestAction) && (
             <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-30 flex items-center gap-1.5 px-2 py-2">
-              {showCardRating && (
+              {showCardRatingBadge && (
                 <TitleCardRating
                   id={id}
                   provider={cardRatingProvider}
@@ -596,9 +601,7 @@ const TitleCard = ({
                   className="pointer-events-auto h-7 min-w-0 flex-1"
                 >
                   <ArrowDownTrayIcon />
-                  <span className={showCardRating ? 'hidden md:inline' : ''}>
-                    {intl.formatMessage(globalMessages.request)}
-                  </span>
+                  <span>{intl.formatMessage(globalMessages.request)}</span>
                 </Button>
               )}
             </div>
