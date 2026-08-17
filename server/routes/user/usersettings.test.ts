@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { before, beforeEach, describe, it, mock } from 'node:test';
 
 import JellyfinAPI from '@server/api/jellyfin';
+import { CardRatingProvider } from '@server/constants/rating';
 import { MediaServerType } from '@server/constants/server';
 import { UserType } from '@server/constants/user';
 import { getRepository } from '@server/datasource';
@@ -88,6 +89,51 @@ async function loginAs(email: string, password: string) {
   assert.strictEqual(res.status, 200);
   return { agent, userId: res.body.id as number };
 }
+
+describe('User card rating settings', () => {
+  it('returns disabled TMDB defaults for users without saved settings', async () => {
+    const { agent, userId } = await loginAs('friend@seerr.dev', 'test1234');
+
+    const res = await agent.get(`/user/${userId}/settings/main`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.showCardRatings, false);
+    assert.strictEqual(res.body.cardRatingProvider, CardRatingProvider.TMDB);
+  });
+
+  it('saves the selected movie card rating provider', async () => {
+    const { agent, userId } = await loginAs('friend@seerr.dev', 'test1234');
+
+    const res = await agent.post(`/user/${userId}/settings/main`).send({
+      showCardRatings: true,
+      cardRatingProvider: CardRatingProvider.IMDB,
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.showCardRatings, true);
+    assert.strictEqual(res.body.cardRatingProvider, CardRatingProvider.IMDB);
+
+    const user = await getRepository(User).findOneOrFail({
+      where: { id: userId },
+    });
+    assert.strictEqual(user.settings?.showCardRatings, true);
+    assert.strictEqual(
+      user.settings?.cardRatingProvider,
+      CardRatingProvider.IMDB
+    );
+  });
+
+  it('rejects an unsupported movie card rating provider', async () => {
+    const { agent, userId } = await loginAs('friend@seerr.dev', 'test1234');
+
+    const res = await agent
+      .post(`/user/${userId}/settings/main`)
+      .send({ showCardRatings: true, cardRatingProvider: 'metacritic' });
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.message, 'Invalid card rating provider.');
+  });
+});
 
 describe('POST /user/:id/settings/linked-accounts/jellyfin/quickconnect', () => {
   beforeEach(() => {

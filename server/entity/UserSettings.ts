@@ -1,3 +1,4 @@
+import { CardRatingProvider } from '@server/constants/rating';
 import type { NotificationAgentTypes } from '@server/interfaces/api/userSettingsInterfaces';
 import { hasNotificationType, Notification } from '@server/lib/notifications';
 import { NotificationAgentKey } from '@server/lib/settings';
@@ -51,6 +52,12 @@ export class UserSettings {
 
   @Column({ nullable: true })
   public originalLanguage?: string;
+
+  @Column({ default: false })
+  public showCardRatings: boolean;
+
+  @Column({ default: CardRatingProvider.TMDB })
+  public cardRatingProvider: CardRatingProvider;
 
   @Column({ nullable: true })
   public pgpKey?: string;

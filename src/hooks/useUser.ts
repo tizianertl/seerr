@@ -1,3 +1,4 @@
+import type { CardRatingProvider } from '@server/constants/rating';
 import { UserType } from '@server/constants/user';
 import type { PermissionCheckOptions } from '@server/lib/permissions';
 import { hasPermission, Permission } from '@server/lib/permissions';
@@ -33,6 +34,8 @@ export interface UserSettings {
   streamingRegion?: string;
   originalLanguage?: string;
   locale?: string;
+  showCardRatings: boolean;
+  cardRatingProvider: CardRatingProvider;
   notificationTypes: Partial<NotificationAgentTypes>;
   watchlistSyncMovies?: boolean;
   watchlistSyncTv?: boolean;

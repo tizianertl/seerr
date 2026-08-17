@@ -1,6 +1,7 @@
 import JellyfinAPI from '@server/api/jellyfin';
 import PlexTvAPI from '@server/api/plextv';
 import { ApiErrorCode } from '@server/constants/error';
+import { CardRatingProvider } from '@server/constants/rating';
 import { MediaServerType } from '@server/constants/server';
 import { UserType } from '@server/constants/user';
 import { getRepository } from '@server/datasource';
@@ -28,6 +29,9 @@ import { canMakePermissionsChange } from '.';
 
 const userSettingsRoutes = Router({ mergeParams: true });
 
+const isCardRatingProvider = (value: unknown): value is CardRatingProvider =>
+  Object.values(CardRatingProvider).includes(value as CardRatingProvider);
+
 userSettingsRoutes.get<{ id: string }, UserSettingsGeneralResponse>(
   '/main',
   isOwnProfileOrAdmin(),
@@ -53,6 +57,9 @@ userSettingsRoutes.get<{ id: string }, UserSettingsGeneralResponse>(
         discoverRegion: user.settings?.discoverRegion,
         streamingRegion: user.settings?.streamingRegion,
         originalLanguage: user.settings?.originalLanguage,
+        showCardRatings: user.settings?.showCardRatings ?? false,
+        cardRatingProvider:
+          user.settings?.cardRatingProvider ?? CardRatingProvider.TMDB,
         movieQuotaLimit: user.movieQuotaLimit,
         movieQuotaDays: user.movieQuotaDays,
         tvQuotaLimit: user.tvQuotaLimit,
@@ -94,6 +101,25 @@ userSettingsRoutes.post<
       });
     }
 
+    if (
+      req.body.showCardRatings !== undefined &&
+      typeof req.body.showCardRatings !== 'boolean'
+    ) {
+      return next({ status: 400, message: 'Invalid card rating setting.' });
+    }
+
+    const cardRatingProvider =
+      req.body.cardRatingProvider ??
+      user.settings?.cardRatingProvider ??
+      CardRatingProvider.TMDB;
+
+    if (!isCardRatingProvider(cardRatingProvider)) {
+      return next({ status: 400, message: 'Invalid card rating provider.' });
+    }
+
+    const showCardRatings =
+      req.body.showCardRatings ?? user.settings?.showCardRatings ?? false;
+
     const oldEmail = user.email;
     user.username = req.body.username;
     if (user.userType !== UserType.PLEX) {
@@ -121,11 +147,13 @@ userSettingsRoutes.post<
 
     if (!user.settings) {
       user.settings = new UserSettings({
-        user: req.user,
+        user,
         locale: req.body.locale,
         discoverRegion: req.body.discoverRegion,
         streamingRegion: req.body.streamingRegion,
         originalLanguage: req.body.originalLanguage,
+        showCardRatings,
+        cardRatingProvider,
         watchlistSyncMovies: req.body.watchlistSyncMovies,
         watchlistSyncTv: req.body.watchlistSyncTv,
       });
@@ -134,6 +162,8 @@ userSettingsRoutes.post<
       user.settings.discoverRegion = req.body.discoverRegion;
       user.settings.streamingRegion = req.body.streamingRegion;
       user.settings.originalLanguage = req.body.originalLanguage;
+      user.settings.showCardRatings = showCardRatings;
+      user.settings.cardRatingProvider = cardRatingProvider;
       user.settings.watchlistSyncMovies = req.body.watchlistSyncMovies;
       user.settings.watchlistSyncTv = req.body.watchlistSyncTv;
     }
@@ -146,6 +176,9 @@ userSettingsRoutes.post<
       discoverRegion: savedUser.settings?.discoverRegion,
       streamingRegion: savedUser.settings?.streamingRegion,
       originalLanguage: savedUser.settings?.originalLanguage,
+      showCardRatings: savedUser.settings?.showCardRatings ?? false,
+      cardRatingProvider:
+        savedUser.settings?.cardRatingProvider ?? CardRatingProvider.TMDB,
       watchlistSyncMovies: savedUser.settings?.watchlistSyncMovies,
       watchlistSyncTv: savedUser.settings?.watchlistSyncTv,
       email: savedUser.email,

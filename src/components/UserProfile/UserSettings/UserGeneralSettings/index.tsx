@@ -15,6 +15,7 @@ import ErrorPage from '@app/pages/_error';
 import defineMessages from '@app/utils/defineMessages';
 import { ArrowDownOnSquareIcon } from '@heroicons/react/24/outline';
 import { ApiErrorCode } from '@server/constants/error';
+import { CardRatingProvider } from '@server/constants/rating';
 import type { UserSettingsGeneralResponse } from '@server/interfaces/api/userSettingsInterfaces';
 import type { AvailableLocale } from '@server/types/languages';
 import axios from 'axios';
@@ -61,6 +62,13 @@ const messages = defineMessages(
     enableOverride: 'Override Global Limit',
     applanguage: 'Display Language',
     languageDefault: 'Default ({language})',
+    showCardRatings: 'Show Ratings on Movie Cards',
+    showCardRatingsTip:
+      'Display a rating from the selected provider in the bottom-left corner of movie cards',
+    cardRatingProvider: 'Rating Provider',
+    imdb: 'IMDb',
+    rottenTomatoes: 'Rotten Tomatoes',
+    tmdb: 'TMDB',
     validationemailrequired: 'Email required',
     validationemailformat: 'Valid email required',
     plexwatchlistsyncmovies: 'Auto-Request Movies',
@@ -86,7 +94,11 @@ const UserGeneralSettings = () => {
   } = useUser({
     id: Number(router.query.userId),
   });
-  const { user: currentUser, hasPermission: currentHasPermission } = useUser();
+  const {
+    user: currentUser,
+    hasPermission: currentHasPermission,
+    revalidate: revalidateCurrentUser,
+  } = useUser();
   const { currentSettings } = useSettings();
   const {
     data,
@@ -155,6 +167,9 @@ const UserGeneralSettings = () => {
           discoverRegion: data?.discoverRegion,
           streamingRegion: data?.streamingRegion,
           originalLanguage: data?.originalLanguage,
+          showCardRatings: data?.showCardRatings ?? false,
+          cardRatingProvider:
+            data?.cardRatingProvider ?? CardRatingProvider.TMDB,
           movieQuotaLimit: data?.movieQuotaLimit,
           movieQuotaDays: data?.movieQuotaDays,
           tvQuotaLimit: data?.tvQuotaLimit,
@@ -174,6 +189,8 @@ const UserGeneralSettings = () => {
               discoverRegion: values.discoverRegion,
               streamingRegion: values.streamingRegion,
               originalLanguage: values.originalLanguage,
+              showCardRatings: values.showCardRatings,
+              cardRatingProvider: values.cardRatingProvider,
               movieQuotaLimit: movieQuotaEnabled
                 ? values.movieQuotaLimit
                 : null,
@@ -224,6 +241,9 @@ const UserGeneralSettings = () => {
           } finally {
             revalidate();
             revalidateUser();
+            if (currentUser?.id === user?.id) {
+              revalidateCurrentUser();
+            }
           }
         }}
       >
@@ -358,6 +378,49 @@ const UserGeneralSettings = () => {
                           {availableLanguages[key].display}
                         </option>
                       ))}
+                    </Field>
+                  </div>
+                </div>
+              </div>
+              <div className="form-row">
+                <label htmlFor="showCardRatings" className="checkbox-label">
+                  <span>{intl.formatMessage(messages.showCardRatings)}</span>
+                  <span className="label-tip">
+                    {intl.formatMessage(messages.showCardRatingsTip)}
+                  </span>
+                </label>
+                <div className="form-input-area">
+                  <Field
+                    type="checkbox"
+                    id="showCardRatings"
+                    name="showCardRatings"
+                    onChange={() => {
+                      setFieldValue('showCardRatings', !values.showCardRatings);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <label htmlFor="cardRatingProvider" className="text-label">
+                  {intl.formatMessage(messages.cardRatingProvider)}
+                </label>
+                <div className="form-input-area">
+                  <div className="form-input-field">
+                    <Field
+                      as="select"
+                      id="cardRatingProvider"
+                      name="cardRatingProvider"
+                      disabled={!values.showCardRatings}
+                    >
+                      <option value={CardRatingProvider.TMDB}>
+                        {intl.formatMessage(messages.tmdb)}
+                      </option>
+                      <option value={CardRatingProvider.IMDB}>
+                        {intl.formatMessage(messages.imdb)}
+                      </option>
+                      <option value={CardRatingProvider.ROTTEN_TOMATOES}>
+                        {intl.formatMessage(messages.rottenTomatoes)}
+                      </option>
                     </Field>
                   </div>
                 </div>

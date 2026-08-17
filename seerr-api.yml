@@ -164,6 +164,17 @@ components:
           type: string
           nullable: true
           example: 'en'
+        showCardRatings:
+          type: boolean
+          default: false
+          description: 'Display the selected rating provider on movie cards'
+          example: true
+        cardRatingProvider:
+          type: string
+          enum: [imdb, rottenTomatoes, tmdb]
+          default: tmdb
+          description: 'Rating provider displayed on movie cards'
+          example: imdb
         movieQuotaLimit:
           type: number
           nullable: true

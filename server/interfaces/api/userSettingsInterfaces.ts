@@ -1,3 +1,4 @@
+import type { CardRatingProvider } from '@server/constants/rating';
 import type { NotificationAgentKey } from '@server/lib/settings';
 
 export interface UserSettingsGeneralResponse {
@@ -7,6 +8,8 @@ export interface UserSettingsGeneralResponse {
   discoverRegion?: string;
   streamingRegion?: string;
   originalLanguage?: string;
+  showCardRatings?: boolean;
+  cardRatingProvider?: CardRatingProvider;
   movieQuotaLimit?: number;
   movieQuotaDays?: number;
   tvQuotaLimit?: number;
