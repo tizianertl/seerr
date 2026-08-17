@@ -185,6 +185,48 @@ movieRoutes.get('/:id/ratings', async (req, res, next) => {
 });
 
 /**
+ * Endpoint backed by IMDb via the Radarr proxy
+ */
+movieRoutes.get('/:id/ratings/imdb', async (req, res, next) => {
+  const tmdb = new TheMovieDb();
+  const imdbApi = new IMDBRadarrProxy();
+
+  try {
+    const movie = await tmdb.getMovie({
+      movieId: Number(req.params.id),
+    });
+
+    if (!movie.imdb_id) {
+      return next({
+        status: 404,
+        message: 'IMDb rating not found.',
+      });
+    }
+
+    const imdbRating = await imdbApi.getMovieRatings(movie.imdb_id);
+
+    if (!imdbRating) {
+      return next({
+        status: 404,
+        message: 'IMDb rating not found.',
+      });
+    }
+
+    return res.status(200).json(imdbRating);
+  } catch (e) {
+    logger.debug('Something went wrong retrieving IMDb movie rating', {
+      label: 'API',
+      errorMessage: e.message,
+      movieId: req.params.id,
+    });
+    return next({
+      status: 500,
+      message: 'Unable to retrieve IMDb movie rating.',
+    });
+  }
+});
+
+/**
  * Endpoint combining RottenTomatoes and IMDB
  */
 movieRoutes.get('/:id/ratingscombined', async (req, res, next) => {

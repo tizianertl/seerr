@@ -6953,6 +6953,39 @@ paths:
                   audienceRating:
                     type: string
                     enum: ['Spilled', 'Upright']
+  /movie/{movieId}/ratings/imdb:
+    get:
+      summary: Get IMDb movie rating
+      description: Returns the IMDb rating for the movie identified by its TMDB movie ID.
+      tags:
+        - movies
+      parameters:
+        - in: path
+          name: movieId
+          required: true
+          schema:
+            type: number
+            example: 337401
+      responses:
+        '200':
+          description: IMDb rating returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    example: I Am Legend
+                  url:
+                    type: string
+                    example: 'https://www.imdb.com/title/tt0480249'
+                  criticsScore:
+                    type: number
+                    example: 6.5
+                  criticsScoreCount:
+                    type: number
+                    example: 850000
   /movie/{movieId}/ratingscombined:
     get:
       summary: Get RT and IMDB movie ratings combined
