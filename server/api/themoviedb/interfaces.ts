@@ -193,6 +193,11 @@ export interface TmdbMovieDetails {
   };
 }
 
+export type TmdbMovieMetadata = Pick<
+  TmdbMovieDetails,
+  'imdb_id' | 'release_date' | 'title'
+>;
+
 export interface TmdbVideo {
   id: string;
   key: string;

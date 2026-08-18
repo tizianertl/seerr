@@ -154,7 +154,7 @@ movieRoutes.get('/:id/ratings', async (req, res, next) => {
   const rtapi = new RottenTomatoes();
 
   try {
-    const movie = await tmdb.getMovie({
+    const movie = await tmdb.getMovieMetadata({
       movieId: Number(req.params.id),
     });
 
@@ -192,7 +192,7 @@ movieRoutes.get('/:id/ratings/imdb', async (req, res, next) => {
   const imdbApi = new IMDBRadarrProxy();
 
   try {
-    const movie = await tmdb.getMovie({
+    const movie = await tmdb.getMovieMetadata({
       movieId: Number(req.params.id),
     });
 
@@ -235,7 +235,7 @@ movieRoutes.get('/:id/ratingscombined', async (req, res, next) => {
   const imdbApi = new IMDBRadarrProxy();
 
   try {
-    const movie = await tmdb.getMovie({
+    const movie = await tmdb.getMovieMetadata({
       movieId: Number(req.params.id),
     });
 

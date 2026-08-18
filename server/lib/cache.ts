@@ -1,3 +1,4 @@
+import { CARD_RATING_CACHE_TTL_SECONDS } from '@server/constants/rating';
 import NodeCache from 'node-cache';
 
 export type AvailableCacheIds =
@@ -51,11 +52,11 @@ class CacheManager {
     radarr: new Cache('radarr', 'Radarr API'),
     sonarr: new Cache('sonarr', 'Sonarr API'),
     rt: new Cache('rt', 'Rotten Tomatoes API', {
-      stdTtl: 43200,
+      stdTtl: CARD_RATING_CACHE_TTL_SECONDS,
       checkPeriod: 60 * 30,
     }),
     imdb: new Cache('imdb', 'IMDB Radarr Proxy', {
-      stdTtl: 43200,
+      stdTtl: CARD_RATING_CACHE_TTL_SECONDS,
       checkPeriod: 60 * 30,
     }),
     github: new Cache('github', 'GitHub API', {

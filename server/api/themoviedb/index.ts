@@ -1,5 +1,6 @@
 import ExternalAPI from '@server/api/externalapi';
 import type { TvShowProvider } from '@server/api/provider';
+import { CARD_RATING_CACHE_TTL_SECONDS } from '@server/constants/rating';
 import cacheManager from '@server/lib/cache';
 import { getSettings } from '@server/lib/settings';
 import { sortBy } from 'lodash';
@@ -13,6 +14,7 @@ import type {
   TmdbKeywordSearchResponse,
   TmdbLanguage,
   TmdbMovieDetails,
+  TmdbMovieMetadata,
   TmdbNetwork,
   TmdbPersonCombinedCredits,
   TmdbPersonDetails,
@@ -271,6 +273,28 @@ class TheMovieDb extends ExternalAPI implements TvShowProvider {
         `[TMDB] Failed to fetch person combined credits: ${e.message}`,
         { cause: e }
       );
+    }
+  };
+
+  public getMovieMetadata = async ({
+    movieId,
+    language = this.locale,
+  }: {
+    movieId: number;
+    language?: string;
+  }): Promise<TmdbMovieMetadata> => {
+    try {
+      return await this.get<TmdbMovieMetadata>(
+        `/movie/${movieId}`,
+        {
+          params: { language },
+        },
+        CARD_RATING_CACHE_TTL_SECONDS
+      );
+    } catch (e) {
+      throw new Error(`[TMDB] Failed to fetch movie metadata: ${e.message}`, {
+        cause: e,
+      });
     }
   };
 

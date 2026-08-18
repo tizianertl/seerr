@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { before, beforeEach, describe, it, mock } from 'node:test';
 
 import ExternalAPI from '@server/api/externalapi';
+import { CARD_RATING_CACHE_TTL_SECONDS } from '@server/constants/rating';
+import type { AxiosRequestConfig } from 'axios';
 import type { Express } from 'express';
 import express from 'express';
 import request from 'supertest';
@@ -9,7 +11,11 @@ import movieRoutes from './movie';
 
 const externalGetMock = mock.method(
   ExternalAPI.prototype as unknown as {
-    get: (endpoint: string) => Promise<unknown>;
+    get: (
+      endpoint: string,
+      config?: AxiosRequestConfig,
+      ttl?: number
+    ) => Promise<unknown>;
   },
   'get'
 );
@@ -83,6 +89,13 @@ describe('GET /movie/:id/ratings/imdb', () => {
       criticsScoreCount: 850000,
     });
     assert.strictEqual(externalGetMock.mock.callCount(), 2);
+    assert.deepStrictEqual(externalGetMock.mock.calls[0].arguments[1], {
+      params: { language: 'en' },
+    });
+    assert.strictEqual(
+      externalGetMock.mock.calls[0].arguments[2],
+      CARD_RATING_CACHE_TTL_SECONDS
+    );
   });
 
   it('returns 404 without requesting IMDb when no IMDb ID exists', async () => {

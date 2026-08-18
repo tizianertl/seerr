@@ -5,7 +5,10 @@ import TmdbLogo from '@app/assets/services/tmdb.svg';
 import defineMessages from '@app/utils/defineMessages';
 import type { IMDBRating } from '@server/api/rating/imdbRadarrProxy';
 import type { RTRating } from '@server/api/rating/rottentomatoes';
-import { CardRatingProvider } from '@server/constants/rating';
+import {
+  CARD_RATING_CACHE_TTL_SECONDS,
+  CardRatingProvider,
+} from '@server/constants/rating';
 import type { ReactNode } from 'react';
 import { useIntl } from 'react-intl';
 import useSWR from 'swr';
@@ -29,6 +32,13 @@ const messages = defineMessages('components.TitleCard.TitleCardRating', {
   rottenTomatoesRating: 'Rotten Tomatoes Tomatometer: {score}%',
   tmdbRating: 'TMDB user score: {score}%',
 });
+
+const ratingRequestOptions = {
+  dedupingInterval: CARD_RATING_CACHE_TTL_SECONDS * 1000,
+  revalidateOnFocus: false,
+  revalidateOnReconnect: false,
+  shouldRetryOnError: false,
+};
 
 const RatingBadge = ({ icon, label, provider, score }: RatingBadgeProps) => (
   <div
@@ -54,13 +64,13 @@ const TitleCardRating = ({
     shouldFetch && provider === CardRatingProvider.IMDB
       ? `/api/v1/movie/${id}/ratings/imdb`
       : null,
-    { revalidateOnFocus: false, shouldRetryOnError: false }
+    ratingRequestOptions
   );
   const { data: rottenTomatoesRating } = useSWR<RTRating>(
     shouldFetch && provider === CardRatingProvider.ROTTEN_TOMATOES
       ? `/api/v1/movie/${id}/ratings`
       : null,
-    { revalidateOnFocus: false, shouldRetryOnError: false }
+    ratingRequestOptions
   );
 
   if (

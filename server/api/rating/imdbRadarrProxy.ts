@@ -1,4 +1,5 @@
 import ExternalAPI from '@server/api/externalapi';
+import { CARD_RATING_CACHE_TTL_SECONDS } from '@server/constants/rating';
 import cacheManager from '@server/lib/cache';
 
 type IMDBRadarrProxyResponse = IMDBMovie[];
@@ -177,7 +178,9 @@ class IMDBRadarrProxy extends ExternalAPI {
   public async getMovieRatings(IMDBid: string): Promise<IMDBRating | null> {
     try {
       const data = await this.get<IMDBRadarrProxyResponse>(
-        `/movie/imdb/${IMDBid}`
+        `/movie/imdb/${IMDBid}`,
+        undefined,
+        CARD_RATING_CACHE_TTL_SECONDS
       );
 
       if (

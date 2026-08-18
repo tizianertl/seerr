@@ -1,4 +1,5 @@
 import ExternalAPI from '@server/api/externalapi';
+import { CARD_RATING_CACHE_TTL_SECONDS } from '@server/constants/rating';
 import cacheManager from '@server/lib/cache';
 import { getSettings } from '@server/lib/settings';
 import jaro from 'wink-jaro-distance';
@@ -136,15 +137,20 @@ class RottenTomatoes extends ExternalAPI {
   ): Promise<RTRating | null> {
     try {
       const filters = encodeURIComponent('isEmsSearchable=1 AND type:"movie"');
-      const data = await this.post<RTAlgoliaSearchResponse>('/queries', {
-        requests: [
-          {
-            indexName: 'content_rt',
-            query: name.replace(/\bthe\b ?/gi, ''),
-            params: `filters=${filters}&hitsPerPage=20`,
-          },
-        ],
-      });
+      const data = await this.post<RTAlgoliaSearchResponse>(
+        '/queries',
+        {
+          requests: [
+            {
+              indexName: 'content_rt',
+              query: name.replace(/\bthe\b ?/gi, ''),
+              params: `filters=${filters}&hitsPerPage=20`,
+            },
+          ],
+        },
+        undefined,
+        CARD_RATING_CACHE_TTL_SECONDS
+      );
 
       const contentResults = data.results.find((r) => r.index === 'content_rt');
       const movie = best(contentResults?.hits || [], name, year);
@@ -179,15 +185,20 @@ class RottenTomatoes extends ExternalAPI {
   ): Promise<RTRating | null> {
     try {
       const filters = encodeURIComponent('isEmsSearchable=1 AND type:"tv"');
-      const data = await this.post<RTAlgoliaSearchResponse>('/queries', {
-        requests: [
-          {
-            indexName: 'content_rt',
-            query: name,
-            params: `filters=${filters}&hitsPerPage=20`,
-          },
-        ],
-      });
+      const data = await this.post<RTAlgoliaSearchResponse>(
+        '/queries',
+        {
+          requests: [
+            {
+              indexName: 'content_rt',
+              query: name,
+              params: `filters=${filters}&hitsPerPage=20`,
+            },
+          ],
+        },
+        undefined,
+        CARD_RATING_CACHE_TTL_SECONDS
+      );
 
       const contentResults = data.results.find((r) => r.index === 'content_rt');
       const tvshow = best(contentResults?.hits || [], name, year);
